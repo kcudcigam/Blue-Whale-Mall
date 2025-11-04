@@ -15,7 +15,7 @@
 
 ## 项目结构
 
-\`\`\`
+```
 ├── src/
 │   └── main.tsx          # 应用入口文件
 ├── App.tsx               # 主应用组件
@@ -37,7 +37,7 @@
 ├── tsconfig.json         # TypeScript 配置
 └── package.json          # 项目依赖
 
-\`\`\`
+```
 
 ## 测试账号
 
