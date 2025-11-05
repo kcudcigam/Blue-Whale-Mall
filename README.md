@@ -4,7 +4,9 @@
 
 ## 📋 项目简介
 
-Blue Whale Mall 是一个功能完整的网络商城应用，专门为校园二手物品交易设计。采用现代化的前后端分离架构，提供用户管理、商品发布、交易联系、后台管理等完整功能。
+Blue Whale Mall （小蓝鲸商城）是一个功能完整的网络商城应用，专门为校园二手物品交易设计。采用现代化的前后端分离架构，提供用户管理、商品发布、交易联系、后台管理等完整功能。该项目仅供测试需要，主要代码由 Gemini/Claude 实现，有可完整运行的 demo。
+
+<img src="https://s2.loli.net/2025/11/05/OgPLhQv7VMabi3N.png" alt="demo.png" style="zoom: 50%;" />
 
 ### 主要特性
 
@@ -74,7 +76,7 @@ Blue-Whale-Mall/
 
 ### 环境要求
 
-- Node.js >= 16
+- Node.js = v22.20.0
 - npm 或 yarn
 
 ### 安装依赖
@@ -141,10 +143,6 @@ npm run build:electron
 **管理员账户**
 - 用户名：`admin`
 - 密码：`admin123`
-
-**测试用户**
-- 用户名：`testuser`
-- 密码：`test123`
 
 ⚠️ **重要**：生产环境请立即修改默认密码！
 
