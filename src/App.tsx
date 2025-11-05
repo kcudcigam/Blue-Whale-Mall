@@ -7,15 +7,23 @@ import { ProfilePage } from './components/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Navbar } from './components/Navbar';
 import { LoadingScreen } from './components/LoadingScreen';
+import { clearToken } from './services/api';
 
 type Page = 'home' | 'login' | 'product-detail' | 'publish' | 'profile' | 'admin';
+
+interface UserData {
+  userId: string;
+  username: string;
+  role: 'user' | 'admin';
+  token: string;
+}
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     // 模拟应用初始化
@@ -25,17 +33,35 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = (role: 'user' | 'admin' = 'user') => {
+  const handleLogin = (data: UserData) => {
     setIsLoggedIn(true);
-    setUserRole(role);
+    setUserData(data);
+    localStorage.setItem('userData', JSON.stringify(data));
     setCurrentPage('home');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setUserRole('user');
+    setUserData(null);
+    clearToken();
+    localStorage.removeItem('userData');
     setCurrentPage('home');
   };
+
+  // 检查本地存储的登录状态
+  useEffect(() => {
+    const savedUserData = localStorage.getItem('userData');
+    if (savedUserData) {
+      try {
+        const data = JSON.parse(savedUserData);
+        setIsLoggedIn(true);
+        setUserData(data);
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        localStorage.removeItem('userData');
+      }
+    }
+  }, []);
 
   const handleProductClick = (productId: string) => {
     setSelectedProductId(productId);
@@ -51,7 +77,7 @@ export default function App() {
       case 'publish':
         return <ProductPublishPage onBack={() => setCurrentPage('home')} />;
       case 'profile':
-        return <ProfilePage onNavigate={setCurrentPage} />;
+        return <ProfilePage onNavigate={setCurrentPage} userData={userData} />;
       case 'admin':
         return <AdminDashboard />;
       default:
@@ -68,7 +94,7 @@ export default function App() {
       {currentPage !== 'login' && (
         <Navbar
           isLoggedIn={isLoggedIn}
-          userRole={userRole}
+          userRole={userData?.role || 'user'}
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           onLogout={handleLogout}

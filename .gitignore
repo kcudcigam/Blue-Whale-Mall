@@ -11,8 +11,11 @@ node_modules
 dist
 dist-ssr
 dist-electron
+dist-server
 release
 *.local
+.env
+
 
 # Editor directories and files
 .vscode/.debug.env

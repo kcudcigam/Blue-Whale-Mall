@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
-import { mockProducts } from './mockData';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
+import { getProducts, Product } from '../services/api';
+import { toast } from 'sonner';
 
 interface HomePageProps {
   onProductClick: (productId: string) => void;
@@ -13,14 +14,40 @@ export function HomePage({ onProductClick }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredProducts = mockProducts.filter((product) => {
+  // 从后端加载商品列表
+  useEffect(() => {
+    loadProducts();
+  }, [categoryFilter, statusFilter]);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getProducts({
+        category: categoryFilter === 'all' ? undefined : categoryFilter,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        page: 1,
+        limit: 100
+      });
+
+      if (response.success && response.data) {
+        setProducts(response.data.products);
+      }
+    } catch (error: any) {
+      console.error('Failed to load products:', error);
+      toast.error('加载商品列表失败');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 前端搜索过滤
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch;
   });
 
   return (
@@ -70,13 +97,27 @@ export function HomePage({ onProductClick }: HomePageProps) {
         </div>
 
         {/* Products Grid - App Style */}
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {filteredProducts.map((product) => (
               <ProductCard
-                key={product.id}
-                product={product}
-                onClick={() => onProductClick(product.id)}
+                key={product.product_id}
+                product={{
+                  id: product.product_id,
+                  title: product.title,
+                  description: product.description,
+                  price: product.price,
+                  category: product.category as any,
+                  status: product.status as any,
+                  image: product.main_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
+                  seller: product.seller_name || '未知卖家',
+                  createdAt: product.created_at
+                }}
+                onClick={() => onProductClick(product.product_id)}
               />
             ))}
           </div>
@@ -86,6 +127,7 @@ export function HomePage({ onProductClick }: HomePageProps) {
               <Search className="w-8 h-8 text-gray-400" />
             </div>
             <p className="text-gray-500 text-sm">未找到相关商品</p>
+            <p className="text-gray-400 text-xs mt-1">试试调整筛选条件</p>
           </div>
         )}
       </div>

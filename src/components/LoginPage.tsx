@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Checkbox } from './ui/checkbox';
 import { ShoppingBag, Eye, EyeOff } from 'lucide-react';
 import { toast } from "sonner";
+import { login, register, setToken } from '../services/api';
 
 interface LoginPageProps {
-  onLogin: (role?: 'user' | 'admin') => void;
+  onLogin: (userData: { userId: string; username: string; role: 'user' | 'admin'; token: string }) => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
@@ -17,14 +18,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   
   // Login form state
-  const [loginEmail, setLoginEmail] = useState('');
+  const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   
   // Register form state
+  const [registerUsername, setRegisterUsername] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
 
   // Phone login state
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -43,11 +47,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     return password.length >= 6;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateEmail(loginEmail)) {
-      toast.error('请输入有效的邮箱地址');
+    if (!loginUsername.trim()) {
+      toast.error('请输入用户名或邮箱');
       return;
     }
     
@@ -56,22 +60,45 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
 
-    // Demo: admin@example.com logs in as admin
-    const role = loginEmail === 'admin@example.com' ? 'admin' : 'user';
-    toast.success('登录成功！');
-    onLogin(role);
+    setIsLoggingIn(true);
+    try {
+      const response = await login({
+        username: loginUsername,
+        password: loginPassword
+      });
+
+      if (response.success && response.data) {
+        setToken(response.data.token!);
+        toast.success('登录成功！');
+        onLogin({
+          userId: response.data.userId,
+          username: response.data.username,
+          role: response.data.role,
+          token: response.data.token!
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || '登录失败，请检查用户名和密码');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateEmail(registerEmail)) {
-      toast.error('请输入有效的邮箱地址');
+    if (!registerUsername.trim()) {
+      toast.error('请输入用户名');
       return;
     }
     
-    if (!validatePhone(registerPhone)) {
-      toast.error('请输入有效的手机号码');
+    if (registerUsername.length < 3 || registerUsername.length > 20) {
+      toast.error('用户名长度必须在3-20个字符之间');
+      return;
+    }
+    
+    if (!validateEmail(registerEmail)) {
+      toast.error('请输入有效的邮箱地址');
       return;
     }
     
@@ -85,8 +112,30 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
 
-    toast.success('注册成功！');
-    onLogin('user');
+    setIsRegistering(true);
+    try {
+      const response = await register({
+        username: registerUsername,
+        email: registerEmail,
+        password: registerPassword,
+        phone: registerPhone || undefined
+      });
+
+      if (response.success && response.data) {
+        setToken(response.data.token!);
+        toast.success('注册成功！欢迎加入小蓝鲸商城');
+        onLogin({
+          userId: response.data.userId,
+          username: response.data.username,
+          role: response.data.role,
+          token: response.data.token!
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || '注册失败，请稍后重试');
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   const handlePhoneLogin = (e: React.FormEvent) => {
@@ -102,8 +151,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       return;
     }
 
-    toast.success('登录成功！');
-    onLogin('user');
+    // 手机登录功能暂未实现后端
+    toast.info('手机验证码登录功能开发中，请使用用户名/邮箱登录');
   };
 
   const sendVerificationCode = () => {
@@ -145,14 +194,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="email">邮箱地址</Label>
+                    <Label htmlFor="username">用户名/邮箱</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="请输入邮箱"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
+                      id="username"
+                      type="text"
+                      placeholder="请输入用户名或邮箱"
+                      value={loginUsername}
+                      onChange={(e) => setLoginUsername(e.target.value)}
                       className="mt-1.5"
+                      disabled={isLoggingIn}
                       required
                     />
                   </div>
@@ -166,6 +216,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                         placeholder="请输入密码"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
+                        disabled={isLoggingIn}
                         required
                       />
                       <button
@@ -194,8 +245,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     </button>
                   </div>
 
-                  <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
-                    登录
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    disabled={isLoggingIn}
+                  >
+                    {isLoggingIn ? '登录中...' : '登录'}
                   </Button>
 
                   <div className="text-center text-gray-500">或</div>
@@ -237,14 +292,28 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                     </div>
                   </div>
 
-                  <p className="text-gray-500 text-center">
-                    测试账号: admin@example.com (管理员)
+                  <p className="text-gray-500 text-center text-sm">
+                    管理员账号: admin / admin123
                   </p>
                 </form>
               </TabsContent>
 
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
+                  <div>
+                    <Label htmlFor="register-username">用户名</Label>
+                    <Input
+                      id="register-username"
+                      type="text"
+                      placeholder="请输入用户名（3-20个字符）"
+                      value={registerUsername}
+                      onChange={(e) => setRegisterUsername(e.target.value)}
+                      className="mt-1.5"
+                      disabled={isRegistering}
+                      required
+                    />
+                  </div>
+
                   <div>
                     <Label htmlFor="register-email">邮箱地址</Label>
                     <Input
@@ -254,12 +323,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       className="mt-1.5"
+                      disabled={isRegistering}
                       required
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="register-phone">手机号码</Label>
+                    <Label htmlFor="register-phone">手机号码（可选）</Label>
                     <Input
                       id="register-phone"
                       type="tel"
@@ -268,7 +338,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                       onChange={(e) => setRegisterPhone(e.target.value)}
                       className="mt-1.5"
                       maxLength={11}
-                      required
+                      disabled={isRegistering}
                     />
                   </div>
 
@@ -281,9 +351,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       className="mt-1.5"
+                      disabled={isRegistering}
                       required
                     />
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-gray-500 mt-1 text-sm">
                       密码强度：{registerPassword.length < 6 ? '弱' : registerPassword.length < 10 ? '中' : '强'}
                     </p>
                   </div>
@@ -297,12 +368,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                       value={registerConfirmPassword}
                       onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                       className="mt-1.5"
+                      disabled={isRegistering}
                       required
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
-                    注册
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    disabled={isRegistering}
+                  >
+                    {isRegistering ? '注册中...' : '注册'}
                   </Button>
                 </form>
               </TabsContent>

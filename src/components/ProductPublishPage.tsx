@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { publishProduct } from '../services/api';
 import { toast } from "sonner";
 
 interface ProductPublishPageProps {
@@ -20,6 +21,7 @@ export function ProductPublishPage({ onBack }: ProductPublishPageProps) {
   const [contact, setContact] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [isDraft, setIsDraft] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -87,17 +89,40 @@ export function ProductPublishPage({ onBack }: ProductPublishPageProps) {
     return true;
   };
 
-  const handlePublish = (e: React.FormEvent) => {
+  const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    toast.success('商品发布成功！');
-    setTimeout(() => {
-      onBack();
-    }, 1000);
+    setIsPublishing(true);
+
+    try {
+      // 调用后端API发布商品
+      const result = await publishProduct({
+        title: title.trim(),
+        description: description.trim(),
+        price: parseFloat(price),
+        category: category as '电子产品' | '服装' | '书籍' | '其他',
+        contactInfo: contact.trim(),
+        imageUrls: images // 注意：这里传的是base64或URL数组
+      });
+
+      if (result.success) {
+        toast.success('商品发布成功！等待管理员审核后即可上架');
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+      } else {
+        toast.error(result.message || '发布失败，请重试');
+      }
+    } catch (error: any) {
+      console.error('发布商品失败:', error);
+      toast.error(error.message || '发布失败，请检查网络连接');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
@@ -248,14 +273,23 @@ export function ProductPublishPage({ onBack }: ProductPublishPageProps) {
                   variant="outline"
                   onClick={saveDraft}
                   className="flex-1 border-purple-300 text-purple-700"
+                  disabled={isPublishing}
                 >
                   保存草稿
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  disabled={isPublishing}
                 >
-                  发布商品
+                  {isPublishing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      发布中...
+                    </>
+                  ) : (
+                    '发布商品'
+                  )}
                 </Button>
               </div>
 

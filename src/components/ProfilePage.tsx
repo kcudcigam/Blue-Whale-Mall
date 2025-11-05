@@ -1,20 +1,86 @@
-import { Package, Heart, Clock, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Heart, Clock, Settings, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
-import { mockUser, mockProducts } from './mockData';
+import { getUserProfile, getProducts, Product, UserProfile } from '../services/api';
+import { toast } from 'sonner';
 
 type Page = 'home' | 'login' | 'product-detail' | 'publish' | 'profile' | 'admin';
 
-interface ProfilePageProps {
-  onNavigate: (page: Page) => void;
+interface UserData {
+  userId: string;
+  username: string;
+  role: 'user' | 'admin';
+  token: string;
 }
 
-export function ProfilePage({ onNavigate }: ProfilePageProps) {
-  const userProducts = mockProducts.slice(0, 3);
-  const favoriteProducts = mockProducts.slice(3, 6);
+interface ProfilePageProps {
+  onNavigate: (page: Page) => void;
+  userData: UserData | null;
+}
+
+export function ProfilePage({ onNavigate, userData }: ProfilePageProps) {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userProducts, setUserProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (userData) {
+      loadUserData();
+    }
+  }, [userData]);
+
+  const loadUserData = async () => {
+    if (!userData) return;
+    
+    setIsLoading(true);
+    try {
+      // 加载用户资料
+      const profileResponse = await getUserProfile();
+      if (profileResponse.success && profileResponse.data) {
+        setProfile(profileResponse.data);
+      }
+
+      // 加载用户发布的商品
+      const productsResponse = await getProducts({
+        sellerId: userData.userId,
+        page: 1,
+        limit: 100
+      });
+      if (productsResponse.success && productsResponse.data) {
+        setUserProducts(productsResponse.data.products);
+      }
+    } catch (error: any) {
+      console.error('加载用户数据失败:', error);
+      toast.error('加载用户数据失败');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">请先登录</p>
+          <Button onClick={() => onNavigate('login')} className="bg-purple-600 hover:bg-purple-700">
+            前往登录
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-12">
@@ -28,14 +94,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <Avatar className="w-24 h-24 mb-4 border-4 border-purple-200">
-                    <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
+                    <AvatarImage src={profile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.username}`} alt={profile?.username} />
                     <AvatarFallback className="bg-purple-100 text-purple-700">
-                      {mockUser.name[0]}
+                      {profile?.username?.[0] || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="text-purple-900 mb-2">{mockUser.name}</h2>
-                  <p className="text-gray-600 mb-1">{mockUser.email}</p>
-                  <p className="text-gray-600 mb-4">{mockUser.phone}</p>
+                  <h2 className="text-purple-900 mb-2">{profile?.username || userData.username}</h2>
+                  <p className="text-gray-600 mb-1">{profile?.email || '未设置邮箱'}</p>
+                  {profile?.phone && <p className="text-gray-600 mb-4">{profile.phone}</p>}
                   <Badge variant="outline" className="border-purple-300 text-purple-700 mb-6">
                     会员等级：普通会员
                   </Badge>
@@ -45,15 +111,17 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   <div className="w-full space-y-3">
                     <div className="flex justify-between text-gray-700">
                       <span>注册时间</span>
-                      <span>{mockUser.joinDate}</span>
+                      <span>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('zh-CN') : '-'}</span>
                     </div>
                     <div className="flex justify-between text-gray-700">
                       <span>发布商品</span>
                       <span>{userProducts.length} 件</span>
                     </div>
                     <div className="flex justify-between text-gray-700">
-                      <span>收藏商品</span>
-                      <span>{favoriteProducts.length} 件</span>
+                      <span>角色</span>
+                      <Badge variant="outline" className="border-purple-300 text-purple-700">
+                        {userData.role === 'admin' ? '管理员' : '普通用户'}
+                      </Badge>
                     </div>
                   </div>
 
@@ -84,127 +152,80 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {userProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex gap-4 p-4 rounded-lg border border-purple-100 hover:bg-purple-50 transition-colors cursor-pointer"
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-20 h-20 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-purple-900 mb-1 truncate">
-                          {product.title}
-                        </h3>
-                        <p className="text-gray-600 line-clamp-2 mb-2">
-                          {product.description}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-purple-600">
-                            ¥{product.price.toLocaleString()}
-                          </span>
-                          <Badge
-                            variant={product.status === 'available' ? 'default' : 'secondary'}
-                            className={
-                              product.status === 'available'
-                                ? 'bg-green-500 hover:bg-green-600'
-                                : 'bg-gray-500'
-                            }
-                          >
-                            {product.status === 'available' ? '可用' : '已售'}
-                          </Badge>
+                {userProducts.length > 0 ? (
+                  <div className="space-y-4">
+                    {userProducts.map((product) => (
+                      <div
+                        key={product.product_id}
+                        className="flex gap-4 p-4 rounded-lg border border-purple-100 hover:bg-purple-50 transition-colors cursor-pointer"
+                      >
+                        <img
+                          src={product.main_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500'}
+                          alt={product.title}
+                          className="w-20 h-20 rounded-lg object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-purple-900 mb-1 truncate">
+                            {product.title}
+                          </h3>
+                          <p className="text-gray-600 line-clamp-2 mb-2">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <span className="text-purple-600">
+                              ¥{product.price.toLocaleString()}
+                            </span>
+                            <Badge
+                              variant={product.status === 'available' ? 'default' : 'secondary'}
+                              className={
+                                product.status === 'available'
+                                  ? 'bg-green-500 hover:bg-green-600'
+                                  : product.status === 'pending'
+                                  ? 'bg-yellow-500 hover:bg-yellow-600'
+                                  : 'bg-gray-500'
+                              }
+                            >
+                              {product.status === 'available' ? '可用' : product.status === 'pending' ? '待审核' : product.status === 'sold' ? '已售' : '已下架'}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button variant="outline" size="sm" className="border-purple-300" disabled>
+                            编辑
+                          </Button>
+                          <Button variant="outline" size="sm" className="border-red-300 text-red-600" disabled>
+                            删除
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" className="border-purple-300">
-                          编辑
-                        </Button>
-                        <Button variant="outline" size="sm" className="border-red-300 text-red-600">
-                          删除
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>还没有发布商品</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4 border-purple-300 text-purple-700"
+                      onClick={() => onNavigate('publish')}
+                    >
+                      立即发布
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Favorites */}
-            <Card className="border-purple-200 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-purple-900">
-                  <Heart className="w-5 h-5" />
-                  我的收藏
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {favoriteProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex gap-4 p-4 rounded-lg border border-purple-100 hover:bg-purple-50 transition-colors cursor-pointer"
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-20 h-20 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-purple-900 mb-1 truncate">
-                          {product.title}
-                        </h3>
-                        <p className="text-gray-600 line-clamp-2 mb-2">
-                          {product.description}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-purple-600">
-                            ¥{product.price.toLocaleString()}
-                          </span>
-                          <Badge variant="outline" className="border-purple-300 text-purple-700">
-                            {product.category}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
+            {/* Recent Activity - Coming Soon */}
             <Card className="border-purple-200 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-900">
                   <Clock className="w-5 h-5" />
-                  最近活动
+                  联系记录
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 text-gray-700">
-                    <div className="w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
-                    <div>
-                      <p>收藏了商品「Canon EOS R6 相机套装」</p>
-                      <p className="text-gray-500">2025-10-24 14:30</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 text-gray-700">
-                    <div className="w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
-                    <div>
-                      <p>发布了商品「MacBook Pro 16寸 M3芯片」</p>
-                      <p className="text-gray-500">2025-10-23 10:15</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 text-gray-700">
-                    <div className="w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
-                    <div>
-                      <p>浏览了商品「iPhone 15 Pro 256GB」</p>
-                      <p className="text-gray-500">2025-10-22 16:45</p>
-                    </div>
-                  </div>
+                <div className="text-center py-8 text-gray-500">
+                  <p>功能开发中...</p>
                 </div>
               </CardContent>
             </Card>
