@@ -16,27 +16,29 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+    <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-purple-700 shadow-md z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <div
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer select-none"
             onClick={() => {
               onNavigate('home');
               setMobileMenuOpen(false);
             }}
           >
-            <ShoppingBag className="w-8 h-8 text-purple-600" />
-            <span className="text-purple-900">小蓝鲸商城</span>
+            <ShoppingBag className="w-7 h-7 text-white" />
+            <span className="text-white font-semibold text-lg">小蓝鲸商城</span>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
             <button
               onClick={() => onNavigate('home')}
-              className={`text-gray-700 hover:text-purple-600 transition-colors ${
-                currentPage === 'home' ? 'text-purple-600' : ''
+              className={`px-4 py-1.5 rounded-full transition-all ${
+                currentPage === 'home' 
+                  ? 'bg-white/20 text-white font-medium' 
+                  : 'text-white/80 hover:bg-white/10'
               }`}
             >
               首页
@@ -45,31 +47,37 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
               <>
                 <button
                   onClick={() => onNavigate('publish')}
-                  className={`text-gray-700 hover:text-purple-600 transition-colors flex items-center gap-1 ${
-                    currentPage === 'publish' ? 'text-purple-600' : ''
+                  className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+                    currentPage === 'publish' 
+                      ? 'bg-white/20 text-white font-medium' 
+                      : 'text-white/80 hover:bg-white/10'
                   }`}
                 >
                   <PlusCircle className="w-4 h-4" />
-                  发布商品
+                  发布
                 </button>
                 <button
                   onClick={() => onNavigate('profile')}
-                  className={`text-gray-700 hover:text-purple-600 transition-colors flex items-center gap-1 ${
-                    currentPage === 'profile' ? 'text-purple-600' : ''
+                  className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+                    currentPage === 'profile' 
+                      ? 'bg-white/20 text-white font-medium' 
+                      : 'text-white/80 hover:bg-white/10'
                   }`}
                 >
                   <User className="w-4 h-4" />
-                  个人中心
+                  我的
                 </button>
                 {userRole === 'admin' && (
                   <button
                     onClick={() => onNavigate('admin')}
-                    className={`text-gray-700 hover:text-purple-600 transition-colors flex items-center gap-1 ${
-                      currentPage === 'admin' ? 'text-purple-600' : ''
+                    className={`px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 ${
+                      currentPage === 'admin' 
+                        ? 'bg-white/20 text-white font-medium' 
+                        : 'text-white/80 hover:bg-white/10'
                     }`}
                   >
                     <LayoutDashboard className="w-4 h-4" />
-                    后台管理
+                    管理
                   </button>
                 )}
               </>
@@ -79,40 +87,47 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
-              <Button variant="outline" onClick={onLogout} className="border-purple-300 text-purple-700 hover:bg-purple-50">
-                退出登录
+              <Button 
+                variant="ghost" 
+                onClick={onLogout} 
+                className="text-white hover:bg-white/10 border border-white/30"
+              >
+                退出
               </Button>
             ) : (
-              <Button onClick={() => onNavigate('login')} className="bg-purple-600 hover:bg-purple-700 text-white">
-                登录/注册
+              <Button 
+                onClick={() => onNavigate('login')} 
+                className="bg-white text-purple-700 hover:bg-purple-50 font-medium"
+              >
+                登录
               </Button>
             )}
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
+              <X className="w-6 h-6 text-white" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
+              <Menu className="w-6 h-6 text-white" />
             )}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <div className="flex flex-col gap-3">
+          <div className="md:hidden py-3 border-t border-white/20">
+            <div className="flex flex-col gap-2">
               <button
                 onClick={() => {
                   onNavigate('home');
                   setMobileMenuOpen(false);
                 }}
-                className={`text-left px-4 py-2 rounded-lg ${
-                  currentPage === 'home' ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
+                className={`text-left px-4 py-2.5 rounded-lg ${
+                  currentPage === 'home' ? 'bg-white/20 text-white font-medium' : 'text-white/80'
                 }`}
               >
                 首页
@@ -124,8 +139,8 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
                       onNavigate('publish');
                       setMobileMenuOpen(false);
                     }}
-                    className={`text-left px-4 py-2 rounded-lg flex items-center gap-2 ${
-                      currentPage === 'publish' ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
+                    className={`text-left px-4 py-2.5 rounded-lg flex items-center gap-2 ${
+                      currentPage === 'publish' ? 'bg-white/20 text-white font-medium' : 'text-white/80'
                     }`}
                   >
                     <PlusCircle className="w-4 h-4" />
@@ -136,8 +151,8 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
                       onNavigate('profile');
                       setMobileMenuOpen(false);
                     }}
-                    className={`text-left px-4 py-2 rounded-lg flex items-center gap-2 ${
-                      currentPage === 'profile' ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
+                    className={`text-left px-4 py-2.5 rounded-lg flex items-center gap-2 ${
+                      currentPage === 'profile' ? 'bg-white/20 text-white font-medium' : 'text-white/80'
                     }`}
                   >
                     <User className="w-4 h-4" />
@@ -149,8 +164,8 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
                         onNavigate('admin');
                         setMobileMenuOpen(false);
                       }}
-                      className={`text-left px-4 py-2 rounded-lg flex items-center gap-2 ${
-                        currentPage === 'admin' ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
+                      className={`text-left px-4 py-2.5 rounded-lg flex items-center gap-2 ${
+                        currentPage === 'admin' ? 'bg-white/20 text-white font-medium' : 'text-white/80'
                       }`}
                     >
                       <LayoutDashboard className="w-4 h-4" />
@@ -159,15 +174,15 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
                   )}
                 </>
               )}
-              <div className="border-t border-gray-200 pt-3 mt-2">
+              <div className="border-t border-white/20 pt-3 mt-2">
                 {isLoggedIn ? (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => {
                       onLogout();
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full border-purple-300 text-purple-700"
+                    className="w-full text-white hover:bg-white/10 border border-white/30"
                   >
                     退出登录
                   </Button>
@@ -177,7 +192,7 @@ export function Navbar({ isLoggedIn, userRole, currentPage, onNavigate, onLogout
                       onNavigate('login');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-white text-purple-700 hover:bg-purple-50"
                   >
                     登录/注册
                   </Button>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HomePage } from './components/HomePage';
 import { LoginPage } from './components/LoginPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
@@ -6,14 +6,24 @@ import { ProductPublishPage } from './components/ProductPublishPage';
 import { ProfilePage } from './components/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Navbar } from './components/Navbar';
+import { LoadingScreen } from './components/LoadingScreen';
 
 type Page = 'home' | 'login' | 'product-detail' | 'publish' | 'profile' | 'admin';
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<'user' | 'admin'>('user');
+
+  useEffect(() => {
+    // 模拟应用初始化
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = (role: 'user' | 'admin' = 'user') => {
     setIsLoggedIn(true);
@@ -49,8 +59,12 @@ export default function App() {
     }
   };
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {currentPage !== 'login' && (
         <Navbar
           isLoggedIn={isLoggedIn}
@@ -60,7 +74,7 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
-      <main className={currentPage !== 'login' ? 'pt-16' : ''}>
+      <main className={currentPage !== 'login' ? 'pt-14' : ''}>
         {renderPage()}
       </main>
     </div>
