@@ -1,6 +1,6 @@
 {
   "name": "blue-whale-mall",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "NJU Ecommerce Platform",
   "author": "kcudcigam",
