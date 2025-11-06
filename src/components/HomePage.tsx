@@ -51,9 +51,9 @@ export function HomePage({ onProductClick }: HomePageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Header Section - Desktop Style */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+    <div className="h-full flex flex-col bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Header Section - Fixed */}
+      <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-40">
         <div className="max-w-[1400px] mx-auto px-8 py-6">
           <div className="flex items-center gap-6">
             {/* Search Bar - Desktop Style */}
@@ -104,48 +104,50 @@ export function HomePage({ onProductClick }: HomePageProps) {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="max-w-[1400px] mx-auto px-8 py-8">
-        {/* Results Info Bar */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            {isLoading ? (
-              '加载中...'
-            ) : (
-              <>
-                找到 <span className="font-semibold text-purple-600">{filteredProducts.length}</span> 件商品
-              </>
-            )}
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-[1400px] mx-auto px-8 py-8">
+          {/* Results Info Bar */}
+          <div className="mb-6 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {isLoading ? (
+                '加载中...'
+              ) : (
+                <>
+                  找到 <span className="font-semibold text-purple-600">{filteredProducts.length}</span> 件商品
+                </>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Products Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-32">
-            <div className="text-center">
-              <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-              <p className="text-gray-500">加载商品列表中...</p>
+          {/* Products Grid */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-32">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+                <p className="text-gray-500">加载商品列表中...</p>
+              </div>
             </div>
-          </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.product_id}
-                product={product}
-                onClick={() => onProductClick(product.product_id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-32">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
-              <Search className="w-10 h-10 text-purple-400" />
+          ) : filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.product_id}
+                  product={product}
+                  onClick={() => onProductClick(product.product_id)}
+                />
+              ))}
             </div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">未找到相关商品</h3>
-            <p className="text-gray-500 mb-6">试试调整搜索关键词或筛选条件</p>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-32">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
+                <Search className="w-10 h-10 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">未找到相关商品</h3>
+              <p className="text-gray-500 mb-6">试试调整搜索关键词或筛选条件</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

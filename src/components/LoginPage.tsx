@@ -169,9 +169,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-purple-50 to-white p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+    <div className="h-full bg-gradient-to-br from-purple-100 via-purple-50 to-white overflow-y-auto">
+      <div className="min-h-full flex items-center justify-center p-4 py-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <ShoppingBag className="w-12 h-12 text-purple-600" />
           </div>
@@ -385,6 +386,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             </Tabs>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

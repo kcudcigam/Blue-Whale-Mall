@@ -90,7 +90,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
       {currentPage !== 'login' && (
         <Navbar
           isLoggedIn={isLoggedIn}
@@ -100,7 +100,7 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
-      <main className={currentPage !== 'login' ? 'pt-14' : ''}>
+      <main className="flex-1 overflow-hidden">
         {renderPage()}
       </main>
     </div>
