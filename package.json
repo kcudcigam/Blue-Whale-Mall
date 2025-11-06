@@ -65,7 +65,7 @@
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
     "sonner": "^2.0.3",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^5.1.6",
     "tailwind-merge": "^2.2.1",
     "vaul": "^1.1.2"
   },
