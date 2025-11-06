@@ -1,7 +1,7 @@
 import { Card, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import type { Product } from './mockData';
+import type { Product } from '../services/api';
 
 interface ProductCardProps {
   product: Product;
@@ -16,7 +16,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     >
       <div className="relative aspect-square overflow-hidden bg-gray-100">
         <ImageWithFallback
-          src={product.image}
+          src={product.main_image || product.images?.[0] || ''}
           alt={product.title}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
@@ -49,7 +49,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
       </CardContent>
       
       <CardFooter className="pt-0 pb-4 text-gray-500">
-        发布者：{product.seller}
+        发布者：{product.seller_name || '未知'}
       </CardFooter>
     </Card>
   );

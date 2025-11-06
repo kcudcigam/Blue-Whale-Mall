@@ -51,83 +51,99 @@ export function HomePage({ onProductClick }: HomePageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Search Section - App Style */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="搜索商品"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 bg-gray-50 border-gray-200 rounded-xl focus:bg-white"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Header Section - Desktop Style */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-8 py-6">
+          <div className="flex items-center gap-6">
+            {/* Search Bar - Desktop Style */}
+            <div className="flex-1 max-w-2xl">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="搜索商品名称、描述..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 pr-4 h-12 text-base border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent shadow-sm"
+                />
+              </div>
+            </div>
+            
+            {/* Category Filter */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">分类：</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[160px] h-12 border-gray-300 rounded-lg shadow-sm">
+                  <SelectValue placeholder="选择分类" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部分类</SelectItem>
+                  <SelectItem value="电子产品">电子产品</SelectItem>
+                  <SelectItem value="服装">服装</SelectItem>
+                  <SelectItem value="书籍">书籍</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">状态：</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px] h-12 border-gray-300 rounded-lg shadow-sm">
+                  <SelectValue placeholder="选择状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value="available">可用</SelectItem>
+                  <SelectItem value="sold">已售</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Filters and Products */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        {/* Filter Bar - App Style */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-9 min-w-[110px] bg-white rounded-full border-gray-200 text-sm">
-              <SelectValue placeholder="分类" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部分类</SelectItem>
-              <SelectItem value="电子产品">电子产品</SelectItem>
-              <SelectItem value="服装">服装</SelectItem>
-              <SelectItem value="书籍">书籍</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-9 min-w-[110px] bg-white rounded-full border-gray-200 text-sm">
-              <SelectValue placeholder="状态" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部状态</SelectItem>
-              <SelectItem value="available">可用</SelectItem>
-              <SelectItem value="sold">已售</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Main Content Area */}
+      <div className="max-w-[1400px] mx-auto px-8 py-8">
+        {/* Results Info Bar */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {isLoading ? (
+              '加载中...'
+            ) : (
+              <>
+                找到 <span className="font-semibold text-purple-600">{filteredProducts.length}</span> 件商品
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Products Grid - App Style */}
+        {/* Products Grid */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+          <div className="flex items-center justify-center py-32">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-500">加载商品列表中...</p>
+            </div>
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.product_id}
-                product={{
-                  id: product.product_id,
-                  title: product.title,
-                  description: product.description,
-                  price: product.price,
-                  category: product.category as any,
-                  status: product.status as any,
-                  image: product.main_image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500',
-                  seller: product.seller_name || '未知卖家',
-                  createdAt: product.created_at
-                }}
+                product={product}
                 onClick={() => onProductClick(product.product_id)}
               />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-3">
-              <Search className="w-8 h-8 text-gray-400" />
+          <div className="text-center py-32">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-100 mb-4">
+              <Search className="w-10 h-10 text-purple-400" />
             </div>
-            <p className="text-gray-500 text-sm">未找到相关商品</p>
-            <p className="text-gray-400 text-xs mt-1">试试调整筛选条件</p>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">未找到相关商品</h3>
+            <p className="text-gray-500 mb-6">试试调整搜索关键词或筛选条件</p>
           </div>
         )}
       </div>
